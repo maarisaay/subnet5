@@ -1,0 +1,9 @@
+bittensor
+torch
+openai
+loguru
+apify-client
+elasticsearch
+python-dotenv
+pydantic
+wandb
