@@ -97,7 +97,7 @@ class Miner(BaseMinerNeuron):
             )
 
         if not self.config.neuron.disable_crawling:
-            crawl_size = max(self.config.neuron.crawl_size, query.size)
+            crawl_size = min(10, self.config.neuron.crawl_size)
             self.structured_search_engine.crawl_and_index_data(
                 query_string=query.query_string,
                 author_usernames=None,
@@ -136,7 +136,7 @@ class Miner(BaseMinerNeuron):
         # miners may adjust this timeout config by themselves according to their own crawler speed and latency
         if query.timeout > 12:
             # do crawling and indexing, otherwise search from the existing index directly
-            crawl_size = max(self.config.neuron.crawl_size, query.size)
+            crawl_size = min(10, self.config.neuron.crawl_size)
             self.structured_search_engine.crawl_and_index_data(
                 query_string=query.query_string,
                 author_usernames=query.author_usernames,
