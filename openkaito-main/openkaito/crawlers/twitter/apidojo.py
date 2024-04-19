@@ -55,14 +55,14 @@ class ApiDojoTwitterCrawler:
             dict: The dict of tweet id to tweet details.
         """
         result = {}
-        remaining_ids = set(ids) - set(result.keys())
+        remaining_ids = ids[:10]
         while retries > 0 and len(remaining_ids) > 0:
             bt.logging.debug(f"Trying fetching ids: {remaining_ids}")
             urls = [f"https://x.com/x/status/{id}" for id in remaining_ids]
             tweets = self.get_tweets_by_urls(list(urls))
             for tweet in tweets:
                 result[tweet["id"]] = tweet
-            remaining_ids = set(remaining_ids) - set(result.keys())
+            remaining_ids = ids[10:20] if len(ids) > 10 else []
             retries -= 1
 
         return result
