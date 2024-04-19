@@ -5,6 +5,11 @@ import bittensor as bt
 
 from openkaito.evaluation.utils import tweet_url_to_id
 
+import requests
+import json
+from datetime import datetime
+from apify_client import ApifyClient
+from itertools import islice
 
 class ApiDojoTwitterCrawler:
     def __init__(self, api_key, timeout_secs=80):
@@ -26,8 +31,8 @@ class ApiDojoTwitterCrawler:
         """
 
         params = {
-            "startUrls": urls,
-            "maxItems": len(urls),
+            "startUrls": urls[:10],
+            "maxItems": 10,
             "maxTweetsPerQuery": 1,
             "onlyImage": False,
             "onlyQuote": False,
@@ -39,11 +44,12 @@ class ApiDojoTwitterCrawler:
         run = self.client.actor(self.actor_id).call(
             run_input=params, timeout_secs=self.timeout_secs
         )
+        first_ten_items = islice(self.client.dataset(run["defaultDatasetId"]).iterate_items(), 10)
         return self.process_list(
-            self.client.dataset(run["defaultDatasetId"]).iterate_items()
+            list(first_ten_items)
         )
 
-    def get_tweets_by_ids_with_retries(self, ids: list, retries=2):
+    def get_tweets_by_ids_with_retries(self, ids: list, retries=1):
         """
         Get tweets by tweet ids with retries.
 
@@ -65,11 +71,25 @@ class ApiDojoTwitterCrawler:
             for tweet in tweets:
                 result[tweet["id"]] = tweet
             remaining_ids = ids[10:20] if len(ids) > 10 else []
-            retries -= 1
+            retries = 0
 
         return result
 
-    def search(self, query: str, author_usernames: list = None, max_size: int = 10):
+    def fetch_tweets(self, username: list):
+        params = {
+            "maxItems": 5,
+            "onlyImage": False,
+            "onlyQuote": False,
+            "onlyTwitterBlue": False,
+            "onlyVerifiedUsers": False,
+            "onlyVideo": False,
+            "twitterHandles": [username]
+        }
+        run = self.client.actor(self.actor_id).call(run_input=params, timeout_secs=self.timeout_secs)
+        items = self.client.dataset(run["defaultDatasetId"]).iterate_items()
+        return list(islice(items, 5))
+
+    def search(self, query: str, author_usernames: list = None, max_size: int = 10, results: list = []):
         """
         Searches for the given query on the crawled data.
 
@@ -83,28 +103,25 @@ class ApiDojoTwitterCrawler:
         bt.logging.debug(
             f"Crawling for query: '{query}', authors: {author_usernames} with size {max_size}"
         )
-        params = {
-            "maxItems": min(10, max_size),
-            "onlyImage": False,
-            "onlyQuote": False,
-            "onlyTwitterBlue": False,
-            "onlyVerifiedUsers": False,
-            "onlyVideo": False,
-        }
-        if query:
-            params["searchTerms"] = [query]
+
+        max_size = 10
+
         if author_usernames:
-            params["twitterHandles"] = author_usernames
+            for username in author_usernames:
+                user_tweets = self.fetch_tweets(username)
+                results.extend(user_tweets)
+            result = self.process_list(
+                results
+            )
+        else:
+            for username in query.author_usernames:
+                user_tweets = self.fetch_tweets(username)
+                results.extend(user_tweets)
+            result = self.process_list(
+                results
+            )
 
-        run = self.client.actor(self.actor_id).call(
-            run_input=params, timeout_secs=self.timeout_secs
-        )
-        bt.logging.trace(f"Apify Actor Run: {run}")
-
-        result = self.process_list(
-            self.client.dataset(run["defaultDatasetId"]).iterate_items()
-        )
-        bt.logging.trace(f"Apify Actor Result: {result}")
+        bt.logging.info(f"Apify Actor Result: {result}")
         return result
 
     def process_item(self, item):
