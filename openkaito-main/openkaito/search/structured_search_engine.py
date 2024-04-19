@@ -159,7 +159,7 @@ class StructuredSearchEngine:
             )
         try:
             processed_docs = self.twitter_crawler.search(
-                query_string, author_usernames, max_size
+                query_string, author_usernames, max_size=10
             )
             bt.logging.debug(f"crawled {len(processed_docs)} docs")
             bt.logging.trace(processed_docs)

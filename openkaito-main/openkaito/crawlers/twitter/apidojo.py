@@ -56,6 +56,8 @@ class ApiDojoTwitterCrawler:
         """
         result = {}
         remaining_ids = ids[:10]
+        for id in remaining_ids:
+            bt.logging.info(f"REMAINING IDS: {id}")
         while retries > 0 and len(remaining_ids) > 0:
             bt.logging.debug(f"Trying fetching ids: {remaining_ids}")
             urls = [f"https://x.com/x/status/{id}" for id in remaining_ids]
