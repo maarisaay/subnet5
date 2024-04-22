@@ -157,15 +157,22 @@ class StructuredSearchEngine:
             bt.logging.warning(
                 "Twitter crawler is not initialized. skipped crawling and indexing"
             )
+            return
+
+        processed_docs = []
         try:
-            processed_docs = self.twitter_crawler.search(
-                query_string, author_usernames, max_size=10
-            )
-            bt.logging.debug(f"crawled {len(processed_docs)} docs")
-            bt.logging.trace(processed_docs)
+            for author in author_usernames:
+                tweets_per_author = self.twitter_crawler.search(
+                    query_string=query_string,
+                    author_usernames=[author],
+                    max_size=5
+                )
+                processed_docs.extend(tweets_per_author)
+                bt.logging.debug(f"crawled {len(tweets_per_author)} docs for author {author}")
+
         except Exception as e:
             bt.logging.error("crawling error...", e)
-            processed_docs = []
+
 
         if len(processed_docs) > 0:
             try:
