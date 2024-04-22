@@ -106,19 +106,16 @@ class ApiDojoTwitterCrawler:
 
         if author_usernames:
             for username in author_usernames:
-                user_tweets = self.fetch_tweets(username, max_size=max_size)
-                results.extend(user_tweets[:max_size])
-            result = self.process_list(
-                results
-            )
+                user_tweets = self.fetch_tweets(username)
+                limited_tweets = user_tweets[:max_size]
+                results.extend(limited_tweets)
         else:
             for username in query.author_usernames:
-                user_tweets = self.fetch_tweets(username, max_size=max_size)
-                results.extend(user_tweets[:max_size])
-            result = self.process_list(
-                results
-            )
+                user_tweets = self.fetch_tweets(username)
+                limited_tweets = user_tweets[:max_size]
+                results.extend(limited_tweets)
 
+        result = self.process_list(results)
         bt.logging.info(f"Apify Actor Result: {result}")
         return result
 
