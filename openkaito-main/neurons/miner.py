@@ -110,7 +110,7 @@ class Miner(BaseMinerNeuron):
         if len(ranked_docs) > 10:
             ranked_docs = ranked_docs[:10]
 
-        bt.logging.debug(f"{len(ranked_docs)} ranked_docs", ranked_docs)
+        bt.logging.info(f"SENDING THE FOLLOWING DATA TO THE VALIDATOR: {ranked_docs}")
         query.results = ranked_docs
         end_time = datetime.now()
         elapsed_time = (end_time - start_time).total_seconds()
@@ -146,7 +146,7 @@ class Miner(BaseMinerNeuron):
 
         # disable crawling for structured search by default
         ranked_docs = self.structured_search_engine.search(query)
-        bt.logging.debug(f"{len(ranked_docs)} ranked_docs", ranked_docs)
+        bt.logging.info(f"SENDING THE FOLLOWING DATA TO THE VALIDATOR: {ranked_docs}")
         query.results = ranked_docs
         end_time = datetime.now()
         elapsed_time = (end_time - start_time).total_seconds()
