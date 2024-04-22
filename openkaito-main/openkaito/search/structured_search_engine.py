@@ -161,20 +161,23 @@ class StructuredSearchEngine:
 
         processed_docs = []
         try:
-            for author in author_usernames:
-                tweets_per_author = self.twitter_crawler.search(
-                    query_string=query_string,
-                    author_usernames=[author],
-                    max_size=5
-                )
-                processed_docs.extend(tweets_per_author)
-                bt.logging.debug(f"crawled {len(tweets_per_author)} docs for author {author}")
-
+            if author_usernames:
+                processed_docs = []
+                for username in author_usernames:
+                    user_tweets = self.twitter_crawler.search(query_string, [username], max_size=5)
+                    processed_docs.extend(user_tweets)
+                bt.logging.debug(f"crawled {len(processed_docs)} docs")
+                bt.logging.trace(processed_docs)
+            else:
+                processed_docs = self.twitter_crawler.search(query_string, max_size=max_size)
+                bt.logging.debug(f"crawled {len(processed_docs)} docs")
+                bt.logging.trace(processed_docs)
         except Exception as e:
             bt.logging.error("crawling error...", e)
+            processed_docs = []
 
 
-        if len(processed_docs) > 0:
+        if processed_docs:
             try:
                 bt.logging.info(f"bulk indexing {len(processed_docs)} docs")
                 bulk_body = []
