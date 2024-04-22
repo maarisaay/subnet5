@@ -89,7 +89,7 @@ class ApiDojoTwitterCrawler:
         items = self.client.dataset(run["defaultDatasetId"]).iterate_items()
         return list(islice(items, 5))
 
-    def search(self, query: str, author_usernames: list = None, max_size: int = 10, results: list = []):
+    def search(self, query: str, author_usernames: list = None, max_size: int = 5, results: list = []):
         """
         Searches for the given query on the crawled data.
 
@@ -104,19 +104,17 @@ class ApiDojoTwitterCrawler:
             f"Crawling for query: '{query}', authors: {author_usernames} with size {max_size}"
         )
 
-        max_size = 10
-
         if author_usernames:
             for username in author_usernames:
-                user_tweets = self.fetch_tweets(username)
-                results.extend(user_tweets)
+                user_tweets = self.fetch_tweets(username, max_size=max_size)
+                results.extend(user_tweets[:max_size])
             result = self.process_list(
                 results
             )
         else:
             for username in query.author_usernames:
-                user_tweets = self.fetch_tweets(username)
-                results.extend(user_tweets)
+                user_tweets = self.fetch_tweets(username, max_size=max_size)
+                results.extend(user_tweets[:max_size])
             result = self.process_list(
                 results
             )
