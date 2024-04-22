@@ -89,7 +89,7 @@ class ApiDojoTwitterCrawler:
         items = self.client.dataset(run["defaultDatasetId"]).iterate_items()
         return list(islice(items, 5))
 
-    def search(self, query: str, author_usernames: list = None, max_size: int = 5, results: list = []):
+    def search(self, query: str, author_usernames: list = None, max_size: int = 10, results: list = []):
         """
         Searches for the given query on the crawled data.
 
@@ -100,20 +100,27 @@ class ApiDojoTwitterCrawler:
         Returns:
             list: The list of results.
         """
-        bt.logging.debug(
-            f"Crawling for query: '{query}', authors: {author_usernames} with size {max_size}"
-        )
+        # bt.logging.debug(
+        #     f"Crawling for query: '{query}', authors: {author_usernames} with size {max_size}"
+        # )
 
-        if author_usernames:
-            for username in author_usernames:
-                user_tweets = self.fetch_tweets(username)
-                limited_tweets = user_tweets[:max_size]
-                results.extend(limited_tweets)
-        else:
-            for username in query.author_usernames:
-                user_tweets = self.fetch_tweets(username)
-                limited_tweets = user_tweets[:max_size]
-                results.extend(limited_tweets)
+        results = []
+        for username in author_usernames:
+            user_tweets = self.fetch_tweets(username)
+            results.extend(user_tweets[:5])
+
+        if len(results) > max_size:
+            results = results[:max_size]
+
+        # if author_usernames:
+        #     for username in author_usernames:
+        #         user_tweets = self.fetch_tweets(username)
+        #         results.extend(user_tweets[:5])
+        # else:
+        #     for username in query.author_usernames:
+        #         user_tweets = self.fetch_tweets(username)
+        #         limited_tweets = user_tweets[:max_size]
+        #         results.extend(limited_tweets)
 
         result = self.process_list(results)
         bt.logging.info(f"Apify Actor Result: {result}")
